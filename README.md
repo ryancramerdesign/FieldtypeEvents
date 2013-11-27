@@ -10,7 +10,7 @@ find it useful for the example scenario (events) then great, but
 keep in mind it is not intended as a comprehensive events solution,
 where using ProcessWire pages may be a better fit. 
 
-<img src='screenshot.png' />
+<img src='https://github.com/ryancramerdesign/FieldtypeEvents/raw/master/screenshot.png' />
 
 
 ## Install
