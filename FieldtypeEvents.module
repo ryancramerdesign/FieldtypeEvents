@@ -1,0 +1,194 @@
+<?php
+
+/**
+ * A field that stores events each with a date, location and notes
+ * 
+ * This is an example of creating your own Fieldtype to represent a spreadsheet type table of information.
+ *
+ */
+
+class FieldtypeEvents extends FieldtypeMulti {
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Events',
+			'version' => 1,
+			'summary' => 'Field that stores a table of events for a page.',
+			'installs' => 'InputfieldEvents', 
+			);
+	}
+
+	/**
+	 * Initialize this Fieldtype
+	 *
+	 */
+	public function init() {
+		parent::init();
+		$dir = dirname(__FILE__);
+		require_once("$dir/Event.php"); 
+		require_once("$dir/EventArray.php"); 
+	}
+
+	/**
+	 * Return the required Inputfield used to populate a field of this type
+	 *
+	 */
+	public function getInputfield(Page $page, Field $field) {
+		$inputfield = $this->modules->get("InputfieldEvents"); 
+
+		// our inputfield requires a Page and Field (most Inputfields don't)
+		$inputfield->setPage($page);
+		$inputfield->setField($field); 
+
+		return $inputfield; 
+	}
+
+	/**
+	 * Return a blank ready-to-populate version of a field of this type
+	 *
+	 */
+	public function getBlankValue(Page $page, Field $field) {
+		$events = new EventArray($page);
+		$events->setTrackChanges(true); 
+		return $events; 
+	}
+
+
+        /**
+         * Given a raw value (value as stored in DB), return the value as it would appear in a Page object
+	 *
+         * @param Page $page
+         * @param Field $field
+         * @param string|int|array $value
+         * @return string|int|array|object $value
+         *
+         */
+        public function ___wakeupValue(Page $page, Field $field, $value) {
+
+		// if for some reason we already get a valid value, then just return it
+		if($value instanceof EventArray) return $value; 
+
+		// start a blank value to be populated
+		$events = $this->getBlankValue($page, $field); 
+
+		// if we were given a blank value, then we've got nothing to do: just return a blank EventArray
+		if(empty($value) || !is_array($value)) return $events; 
+
+		// create new Event objects from each item in the array
+		foreach($value as $v) {
+			$event = new Event();
+			$event->date = $v['data']; // note we're converting 'data' to 'date'
+			$event->location = $v['location']; 
+			$event->notes = $v['notes']; 
+			$event->setTrackChanges(true); 
+			$events->add($event); 
+		}
+
+		$events->resetTrackChanges(); 
+
+                return $events;  
+        }
+
+        /**
+         * Given an 'awake' value, as set by wakeupValue, convert the value back to a basic type for storage in DB. 
+         *              
+         * @param Page $page
+         * @param Field $field
+         * @param string|int|array|object $value
+         * @return string|int
+         *
+         */
+        public function ___sleepValue(Page $page, Field $field, $value) {
+
+		$sleepValue = array();
+
+		// if we are given something other than an EventArray, 
+		// then just return a blank array
+		if(!$value instanceof EventArray) return $sleepValue; 
+
+		// make the events sort by date ascending
+		$value->sort('date'); 
+
+		// convert each Event to an array within sleepValue
+		foreach($value as $event) {
+			$sleepValue[] = array(
+				'data' => (int) $event->date, // note: date is becoming data 
+				'location' => $event->location, 
+				'notes' => $event->notes
+				); 
+		}
+		return $sleepValue;
+        }
+
+	/**
+	 * Given a value, make it clean for storage within a Page
+	 *
+	 */
+	public function sanitizeValue(Page $page, Field $field, $value) {
+
+		// if given a blank value, return a valid blank value
+		if(empty($value)) return $this->getBlankValue($page, $field, $value); 
+
+		// if given something other than an EventArray, throw an error
+		if(!$value instanceof EventArray) {
+			throw new WireException("Value set to field '$field->name' must be an EventArray"); 
+		}
+
+		// note that sanitization of individual fields within a given event is already 
+		// performed by the Event::set() method, so we don't need to do anything else here.
+
+		return $value; 	
+	}
+
+	/**
+	 * Format a value for output, called when a Page's outputFormatting is on
+	 *
+	 */
+	public function formatValue(Page $page, Field $field, $value) {
+		// we actually don't need to do anything in here since each Event object
+		// is doing this work in the Event::get() method. But I've included this
+		// comment here just to explain where that is taking place. 
+		return $value; 
+	}
+
+	/**
+	 * Return the database schema that defines an Event
+	 *
+	 */
+	public function getDatabaseSchema(Field $field) {
+		$schema = parent::getDatabaseSchema($field); 
+
+		// 'data' is a required field for any Fieldtype, and we're using it to represent our 'date' field
+		$schema['data'] = 'INT NOT NULL DEFAULT 0'; 
+
+		// our text fields
+		$schema['location'] = 'TINYTEXT NOT NULL'; 
+		$schema['notes'] = 'TEXT NOT NULL'; 
+
+		// indexes, for any fields that need to be searchable from selectors
+		// in this case, we're just making our 'date' field searchable
+		// but the others could easily be added, likely as fulltext indexes
+		$schema['keys']['data'] = 'KEY data(data)'; 
+
+		return $schema; 
+	}
+
+	/**
+	 * Method called when the field is database-queried from a selector 
+	 *
+	 */
+	public function getMatchQuery($query, $table, $subfield, $operator, $value) {
+
+		// If searching 'date' then assume our default (data) field 
+		if($subfield == 'date') $subfield = 'data';
+
+		// if value is a formatted date, convert it to unix timestamp
+		if(!ctype_digit("$value")) $value = strtotime($value); 
+
+		return parent::getMatchQuery($query, $table, $subfield, $operator, $value); 
+	}
+
+
+
+}
+

@@ -1,0 +1,62 @@
+.InputfieldEvents table tr {
+	border: none; 
+}
+
+.InputfieldEvents th {
+	padding-bottom: 0;
+	font-weight: bold; 
+}
+
+.InputfieldEvents tr.EventTemplate {
+	display: none; 
+}
+
+.InputfieldEvents tr:not(.EventTBD):hover td {
+	background: #eee; 
+}
+
+.InputfieldEvents input[type=text],
+.InputfieldEvents input[type=date],
+.InputfieldEvents input[type=number] {
+	width: 100%; 
+}
+.InputfieldEvents th,
+.InputfieldEvents td {
+	padding: 6px 2px; 
+	border-bottom: 1px solid #ddd; 
+}
+
+.InputfieldEvents .EventClone {
+	width: 3%; 
+	padding-left: 1%; 
+	text-align: center; 
+}
+
+.InputfieldEvents .EventDate {
+	width: 15%; 
+}
+
+.InputfieldEvents .EventLocation {
+	width: 30%; 
+}
+
+.InputfieldEvents .EventNotes {
+	width: 50%; 
+}
+
+.InputfieldEvents th.EventDel {
+	width: 5%; 
+	padding-right: 0;
+
+}
+
+.InputfieldEvents a.EventClone,
+.InputfieldEvents a.EventDel {
+	width: 1.5em; 
+	display: block;
+}
+
+.InputfieldEvents .EventTBD td input {
+	text-decoration: line-through; 
+}
+

@@ -1,0 +1,138 @@
+<?php
+
+class InputfieldEvents extends Inputfield {
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Events',
+			'version' => 1,
+			'summary' => 'Input field for events.',
+			'requires' => 'FieldtypeEvents', 
+			);
+	}
+
+	protected $page;
+	protected $field; 
+
+	public function setPage(Page $page) {
+		$this->page = $page; 
+	}
+
+	public function setField(Field $field) {
+		$this->field = $field;
+	}
+
+	/**
+	 * Render a table row for an individual Event input
+	 *
+	 */
+	protected function renderRow(Event $event, $cnt, $class = 'Event') {
+
+		$name = $this->attr('name');
+		$date = $event->date > 0 ? date(Event::dateFormat, $event->date) : '';
+		$location = $this->sanitizer->entities($event->location); 
+		$notes = $this->sanitizer->entities($event->notes); 
+
+		$out = "
+			<tr class='Event$cnt $class'>
+				<td><a href='#' class='EventClone'><span class='ui-icon ui-icon-copy'></span></a></td>
+				<td><input type='text' name='{$name}_date[]' value='$date' class='datepicker' /></td>
+				<td><input type='text' name='{$name}_location[]' value='$location' /></td>
+				<td><input type='text' name='{$name}_notes[]' value='$notes' /></td>
+				<td>
+					<a href='#' class='EventDel ui-helper-clearfix'><span class='ui-icon ui-icon-trash'></span></a>
+					<input type='hidden' name='{$name}_del[]' value='0' />
+				</td>
+			</tr>
+			";
+
+		return $out; 
+	}
+
+	/**
+	 * Render the entire input area for Events
+	 *
+	 */
+	public function ___render() {
+
+		// get Event template for creating new events
+		$tbody = $this->renderRow(new Event(), 0, 'Event EventTemplate'); 
+		
+		// render rows for existing Events	
+		foreach($this->attr('value') as $cnt => $event) {
+			$tbody .= $this->renderRow($event, $cnt); 
+		}	
+
+		$out = 	"
+		<table class='InputfieldEvents'>
+			<thead>
+			<tr class=''>
+				<th class='EventClone'>&nbsp;</th>
+				<th class='EventDate'>Date</th>
+				<th class='EventLocation'>Location</th>
+				<th class='EventNotes'>Notes</th>
+				<th class='EventDel'>
+					<a title='Delete All' href='#' class='EventDel'><span class='ui-icon ui-icon-trash'></span></a>
+				</th>
+			</tr>
+			</thead>
+			<tbody>
+			$tbody
+			</tbody>
+		</table>
+		";
+
+		// add a button that triggers adding a new event
+		$btn = $this->modules->get('InputfieldButton');
+		$btn->attr('id', $this->attr('name') . "_new"); 
+		$btn->class .= " InputfieldEventsAdd";
+		$btn->icon = 'plus-sign';
+		$btn->value = $this->_('Add New Event'); 
+		$out .= $btn->render();
+
+		return $out; 
+	}
+
+	/**
+	 * Process input for the Events inputs
+	 *
+	 */
+	public function ___processInput(WireInputData $input) {
+
+		if(!$this->page || !$this->field) {
+			throw new WireException("This inputfield requires that you set valid 'page' and 'field' properties to it."); 
+		}
+
+		$name = $this->attr('name'); 
+		$events = $this->field->type->getBlankValue($this->page, $this->field); 
+		$numDeleted = 0; 
+
+		foreach($input->{"{$name}_date"} as $cnt => $date) {
+
+			if(!$cnt) continue; // template for 'new' item is the first, so we can ignore it
+
+			// check if the item is being deleted
+			if($input->{"{$name}_del"}[$cnt]) {
+				// if being deleted, then we simply skip over it
+				$numDeleted++;
+				continue; 
+			}
+
+			// create the $event and add it to our $events
+			$event = new Event();
+			$event->date = $date; 
+			$event->location = $input->{"{$name}_location"}[$cnt];
+			$event->notes = $input->{"{$name}_notes"}[$cnt];
+			$events->add($event); 
+		}
+
+		// if the string values of the processed events are different from the previous,
+		// or if any events have been deleted, then flag this Inputfield as changed
+		// so that it will be automatically saved with the page
+		if("$events" != "$this->value" || $numDeleted) {
+			$this->attr('value', $events); 
+			$this->trackChange('value'); 
+		}
+	}
+}
+
