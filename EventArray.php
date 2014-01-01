@@ -11,7 +11,6 @@ class EventArray extends WireArray {
 
 	public function __construct(Page $page) {
 		$this->page = $page; 
-		return parent::__construct();
 	}
 
 	public function isValidItem($item) {

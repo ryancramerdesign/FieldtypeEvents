@@ -12,7 +12,7 @@ class FieldtypeEvents extends FieldtypeMulti {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Events',
-			'version' => 1,
+			'version' => 2,
 			'summary' => 'Field that stores a table of events for a page.',
 			'installs' => 'InputfieldEvents', 
 			);
