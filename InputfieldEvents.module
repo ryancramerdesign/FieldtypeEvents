@@ -5,7 +5,7 @@ class InputfieldEvents extends Inputfield {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Events',
-			'version' => 1,
+			'version' => 3,
 			'summary' => 'Input field for events.',
 			'requires' => 'FieldtypeEvents', 
 			);

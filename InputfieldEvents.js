@@ -3,7 +3,7 @@ $(document).ready(function() {
 	$(document).on("click", ".InputfieldEventsAdd", function(e) {
 		$(this).removeClass('ui-state-active'); 
 		var $row = $(this).parents(".InputfieldEvents").find("tr.EventTemplate"); 
-		$row.parent('tbody').append($row.clone().hide().removeClass('EventTemplate').fadeIn()); 
+		$row.parent('tbody').append($row.clone().hide().removeClass('EventTemplate').css('display', 'table-row').fadeIn()); 
 		var id = $(this).attr('id'); 
 		setTimeout("$('#" + id + "').removeClass('ui-state-active')", 500); 
 		return false; 
@@ -12,7 +12,7 @@ $(document).ready(function() {
 	$(document).on("click", ".InputfieldEvents a.EventClone", function(e) {
 		var $row = $(this).parents("tr.Event"); 
 		var $table = $(this).parents("table.InputfieldEvents"); 
-		$table.append($row.clone().hide().fadeIn()); 
+		$table.append($row.clone().hide().css('display', 'table-row').fadeIn()); 
 		return false; 
 	}); 
 
