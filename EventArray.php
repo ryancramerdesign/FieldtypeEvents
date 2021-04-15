@@ -1,31 +1,35 @@
-<?php
+<?php namespace ProcessWire;
 
 /**
- * Contains multiple Event objects for a single page
+ * FieldtypeEvents: EventArray
+ * 
+ * Contains multiple Event objects for a page
  *
  */
 
 class EventArray extends WireArray {
 
-	protected $page;
-
-	public function __construct(Page $page) {
-		$this->page = $page; 
-	}
-
+	/**
+	 * Is given item valid to store in this EventArray?
+	 * 
+	 * @param Event $item
+	 * @return bool
+	 * 
+	 */
 	public function isValidItem($item) {
 		return $item instanceof Event;
 	}
 
-	public function add($item) {
-		$item->page = $this->page; 
-		return parent::add($item); 
-	}
-
+	/**
+	 * Make a string value to represent these events that can be used for comparison purposes
+	 * 
+	 * @return string
+	 * 
+	 */
 	public function __toString() {
-		$out = '';
-		foreach($this as $item) $out .= $item; 
-		return $out; 
+		$a = [];
+		foreach($this as $item) $a[] = (string) $item;
+		return implode("\n", $a);
 	}
 }
 
