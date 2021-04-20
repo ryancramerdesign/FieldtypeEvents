@@ -7,9 +7,7 @@
  * 
  * @property string $date Date string in Y-m-d format
  * @property string $title Title of the event
- * @property string $location Location of the event
- * @property string $notes Notes about the event
- * @property bool $formatted Is this a formatted value? 
+ * @property bool $formatted
  * 
  */
 class Event extends WireData {
@@ -22,8 +20,6 @@ class Event extends WireData {
 		// define the fields that represent our event (and their default/blank values)
 		$this->set('date', ''); 
 		$this->set('title', ''); 
-		$this->set('location', ''); 
-		$this->set('notes', ''); 
 		$this->set('formatted', false);
 		parent::__construct();
 	}
@@ -39,7 +35,7 @@ class Event extends WireData {
 	public function set($key, $value) {
 		if($key === 'date') {
 			$value = $value ? wireDate('Y-m-d', $value) : '';
-		} else if($key === 'location' || $key === 'notes') {
+		} else if($key === 'title') {
 			$value = $this->sanitizer->text($value); 
 		}
 		return parent::set($key, $value); 
